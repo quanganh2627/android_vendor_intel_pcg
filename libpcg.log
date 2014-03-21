@@ -1,9 +1,13 @@
 f1d15f1daaa79d2efe5604e3849bb4c0  libirc_pcg.a
-799fd00b05d07aa7bff3e7cedc1b7328  libpcg.a
-c2539f6b75fc79d7ba611efd979edce5  libpcg.h
-8f2583ffdab55e539926c6a0fad2687f  libpcg_host.a
+a4a52804ae93e495f553468dee4e6b98  libpcg.a
+30159fad232d9c80414b41718493ae6e  libpcg.h
+f48edca1830b70ba767394df3acc5992  libpcg_host.a
 f0913e41f7dd9d1f9ee250f2ad804f2b  libsvml_pcg.a
 
+------------------------------------------------------------------------
+r251681 | smaslov | 2014-02-11 15:29:12 +0700 (Tue, 11 Feb 2014) | 1 line
+
+Dalvik: produce libpcg.log manifest file contating md5 sums for all files to be shipped for Dalvik and the summary of commits targeting Dalvik. Reviewer: Dave
 ------------------------------------------------------------------------
 r248671 | smaslov | 2014-02-03 12:33:14 +0700 (Mon, 03 Feb 2014) | 7 lines
 

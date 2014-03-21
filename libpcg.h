@@ -7,7 +7,7 @@
 // limitations under the EULA.
 //
 
-// static char cvs_id[] = "$Id: libpcg.h 247697 2014-01-21 22:32:40Z dlkreitz $";
+// static char cvs_id[] = "$Id: libpcg.h 253894 2014-03-13 13:21:57Z dlkreitz $";
 
 //
 // This file contains the declarations for the external interfaces to the
@@ -823,9 +823,9 @@ typedef enum {
 //
 //
 // callback_name: "CGGetSourcePosition"
-// Prototype: const char* CGGetSourcePositionFunction(CGSrcPosHandle sp,
-//                                                    int32_t *line,
-//                                                    int32_t *col);
+// Prototype: const char* CGGetSourcePosition(CGSrcPosHandle sp,
+//                                            int32_t *line,
+//                                            int32_t *col);
 // Description: PCG invokes this callback to translate non-null CGSrcPosHandle
 //     source position data into source file, line number and column number
 //     representation. File name is provided as return value while the other

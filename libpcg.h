@@ -781,17 +781,172 @@ typedef enum {
     CGDiagnosticLevelInternal
 } CGDiagnosticLevel;
 
-// CGRegisterCallbackRoutine provides PCG with a function pointer to one of the
-// client callback routines.  The code generator calls these in order to get
-// information from the client or to request that the client perform some
-// action.
 //
-// Callback routines supported by this interface include the following.
+// NOTE: THIS IS DEPRECATED!
+//       Please use CG_CALLBACK_REGISTER macro to register a callback.
+//       Refer to the CG_CALLBACK_DEFINE definitions below to get the list
+//       of supported callbacks.
 //
+extern void CGRegisterCallbackRoutine(const char *callback_name, void *fnptr);
+
+// CGGetMemConstSymbolFromClient requests that the client allocate memory to
+// hold a constant value and then create a CGSymbol that the code generator can
+// use to reference that memory.  The memory must be at least "length" bytes
+// and have at least "align" alignment.  The client must copy the first
+// "length" bytes from "value" to the newly allocated memory.
+//
+// NOTE: THIS IS DEPRECATED!
+//   Please use
+//   CG_CALLBACK_REGISTER(CGGetMemConstSymbolForRoutineFromClient) instead.
+//
+extern CGSymbol CGGetMemConstSymbolFromClient(uint8_t *value, size_t length,
+                                              uint32_t align);
+
+// ======================================================================
+// Support for CG callbacks.
+// Usage: just register your function that does the job, e.g.:
+//
+//  CG_CALLBACK_REGISTER(CGGetSymbolForNameFromClient, myfunc);
+//
+// ======================================================================
+#define CGCallbackVar(name)  name##CallbackRoutine
+#define CGCallbackType(name) name##CallbackRoutineType
+
+#define CGDeclareCallback(rettype, name, args)        \
+  typedef rettype (* CGCallbackType(name))args;       \
+  extern  CGCallbackType(name) CGCallbackVar(name);   \
+  extern rettype name args; // NOTE: remove this fixed name forward declararion
+                            //       once all clients are switched over to the
+                            //       registered callbacks.
+
+#define CGRegisterCallback(name, func) \
+    CGCallbackVar(name) = func;
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//
+//                 Client callback routines follow
+//
+// These callbacks must all be defined by the client.  The code generator calls
+// these in order to get information from the client or to request that the
+// client perform some action.
+//////////////////////////////////////////////////////////////////////////////
+
+// callback_name: "CGGetRoutineNameFromClient"
+// Description: CGGetRoutineNameFromClient requests that the client provide
+//      the code generator with the name of the specified function.  The code
+//      generator passes the same client_routine_handle that was passed to it
+//      via CGCreateRoutine and CGCompileRoutine.
+// Default behavior: If the client does not provide a
+//     CGGetRoutineNameFromClient callback routine, the code generator
+//     will issue a fatal diagnostic if it ever needs to make this callback.
+//     All clients are encouraged to implement
+//     CGGetRoutineNameFromClient.
+//
+CGDeclareCallback(const char *, CGGetRoutineNameFromClient,
+                                (const void *handle));
+
+// callback_name: "CGSymbolNeedsLargeModelFixup"
+// Description: CGSymbolNeedsLargeModelFixup asks the client whether the
+//      specified symbol might have an arbitrary 64-bit address.  If so,
+//      the client must return a non-zero value.  If the symbol is known to
+//      reside in the lower 2GB of the address space or if the symbol is
+//      known to be located within 2GB of the generated code in PIC mode,
+//      then the client may return 0.
+// Default behavior: If the client does not provide a
+//     CGSymbolNeedsLargeModelFixup callback routine, the code generator
+//     will issue a fatal diagnostic if it ever needs to make this callback.
+//     All clients are encouraged to implement
+//     CGSymbolNeedsLargeModelFixup.
+//
+CGDeclareCallback(int, CGSymbolNeedsLargeModelFixup,
+                       (CGSymbol symbol));
+
+// callback_name: "CGGetSymbolAddressFromClient"
+// Description: CGGetSymbolAddressFromClient requests that the client provide
+//      the absolute address of the specified symbol.  PCG uses this
+//      information to process relocations during calls to
+//      CGResolveSymbolReferences.  The return value is defined as uint64_t
+//      to accommodate both 32-bit and 64-bit targets.
+// Default behavior: If the client does not provide a
+//     CGGetSymbolAddressFromClient callback routine, the code generator
+//     will issue a fatal diagnostic if it ever needs to make this callback.
+//     All client that call CGResolveSymbolReferences must implement
+//     CGGetSymbolAddressFromClient.
+//
+CGDeclareCallback(uint64_t, CGGetSymbolAddressFromClient,
+                            (CGSymbol symbol));
+
+// callback_name: "CGGetSymbolForNameFromClient"
+// Description: CGGetSymbolForNameFromClient requests that the client provide
+//      a CGSymbol that PCG can use to reference an object level symbol of
+//      the specified name.  This callback function is typically used for
+//      library symbols resulting from intrinsic function expansions.
+// Default behavior: If the client does not provide a
+//     CGGetSymbolForNameFromClient callback routine, the code generator
+//     will issue a fatal diagnostic if it ever needs to make this callback.
+//     All clients are encouraged to implement
+//     CGGetSymbolForNameFromClient.
+//
+CGDeclareCallback(CGSymbol, CGGetSymbolForNameFromClient,
+                            (const char *symbol_name));
+
+// callback_name: "CGGetSymbolNameFromClient"
+// Description: CGGetSymbolNameFromClient requests that the client provide the
+//      name of the specified symbol.
+// Default behavior: If the client does not provide a
+//     CGGetSymbolNameFromClient callback routine, the code generator
+//     will issue a fatal diagnostic if it ever needs to make this callback.
+//     All clients are encouraged to implement
+//     CGGetSymbolNameFromClient.
+//
+CGDeclareCallback(const char *, CGGetSymbolNameFromClient,
+                                (CGSymbol symbol));
+
+// callback_name: "CGGetProbabilityOfOverlapFromClient"
+// Description: CGGetProbabilityOfOverlapFromClient requests that the client
+//      provide disambiguation information about the memory references
+//      identified by handle1 and handle2.  (handle1 and handle2 are the
+//      handles that were passed to CGCreateNewInst for 'm' operands.)
+//      The client must return an integer in the range [0, 100].  A return
+//      value of 0 is a guarantee from the client that the memory references
+//      do not overlap.  A return value of 100 is a guarantee from the client
+//      that the memory references do overlap.  Any other value is the client's
+//      best guess for the probability that the memory references overlap.
+// Default behavior: If the client does not provide a
+//     CGGetProbabilityOfOverlapFromClient callback routine, the code generator
+//     will issue a fatal diagnostic if it ever needs to make this callback.
+//     All clients are encouraged to implement
+//     CGGetProbabilityOfOverlapFromClient.
+//
+CGDeclareCallback(uint32_t, CGGetProbabilityOfOverlapFromClient,
+                            (void *handle1,
+                             void *handle2));
+
+// callback_name: "CGAddRelocationToClient"
+// Description: CGAddRelocationToClient passes relocation information back to
+//      the client.  This routine is called as many times as necessary during
+//      the call to CGCompileRoutine.  The client_routine_handle identifies
+//      the routine for the client.  It is the same handle that was passed to
+//      PCG in the call to CGCreateRoutine.  code_offset gives the location in
+//      the code at which to apply the relocation action.  It is an offset
+//      from the start of the function.  symbol gives the CGSymbol to which
+//      the relocation must be made.  relocation_type gives the type of
+//      relocation.  addend specifies a constant addend used to compute the
+//      value to be stored in the relocatable field.
+// Default behavior: If the client does not provide a CGAddRelocationToClient
+//     callback routine, the code generator will issue a fatal diagnostic if
+//     it ever needs to make this callback.  All clients are encouraged to
+//     implement CGAddRelocationToClient.
+//
+CGDeclareCallback(void, CGAddRelocationToClient,
+                        (void *client_routine_handle,
+                         uint64_t code_offset,
+                         CGSymbol symbol,
+                         CGRelocationType relocation_type,
+                         int64_t addend));
+
 // callback_name: "CGDiagnosticMessage"
-// Prototype: void CGDiagnosticMessage(CGDiagnosticLevel severity,
-//                                     const char *file, uint32_t line,
-//                                     uint32_t col, const char *error_msg);
 // Description: PCG calls CGDiagnosticMessage to pass diagnostic information
 //     back to the client.  This can be for user-level errors, warnings, and
 //     remarks or for internal errors, which are typically assertion failures.
@@ -804,10 +959,14 @@ typedef enum {
 //     callback routine, then when a diagnostic needs to be generated, PCG will
 //     print a message of its own choosing to stderr.
 //
+CGDeclareCallback(void, CGDiagnosticMessage,
+                        (CGDiagnosticLevel severity,
+                         const char *file,
+                         uint32_t line,
+                         uint32_t col,
+                         const char *error_msg));
 //
 // callback_name: "CGSetBinarySourcePosition"
-// Prototype: void CGSetBinarySourcePosition(uint64_t code_offset,
-//                                           CGSrcPosHandle sp);
 // Description: PCG invokes this callback to tell the client that the
 //     instruction at offset "code_offset" from the start of the routine is
 //     associated with the specified source position.
@@ -821,11 +980,11 @@ typedef enum {
 //     regardless whether it was set to valid source position or not.
 //     That means that client should expect NULL value for source position.
 //
+CGDeclareCallback(void, CGSetBinarySourcePosition,
+                        (uint64_t code_offset,
+                         CGSrcPosHandle sp));
 //
 // callback_name: "CGGetSourcePosition"
-// Prototype: const char* CGGetSourcePosition(CGSrcPosHandle sp,
-//                                            int32_t *line,
-//                                            int32_t *col);
 // Description: PCG invokes this callback to translate non-null CGSrcPosHandle
 //     source position data into source file, line number and column number
 //     representation. File name is provided as return value while the other
@@ -838,111 +997,30 @@ typedef enum {
 //     results in diagnostics error message. PCG normally does not call the
 //     callback with NULL source position.
 //
+CGDeclareCallback(const char*, CGGetSourcePosition,
+                               (CGSrcPosHandle sp,
+                                int32_t *line,
+                                int32_t *col));
 //
-// callback_name: "CGGetMemConstSymbolFromClient"
-// Prototype: CGSymbol CGGetMemConstSymbolFromClient(
-//                         const void *client_routine_handle,
-//                         uint8_t *value,
-//                         size_t length,
-//                         uint32_t align);
-// Description: CGGetMemConstSymbolFromClient requests that the client allocate
-//     memory to hold a constant value and then create a CGSymbol that the code
-//     generator can use to reference that memory.  The memory must be at least
-//     "length" bytes and have at least "align" alignment.  The client must
-//     copy the first "length" bytes from "value" to the newly allocated
-//     memory.
+// callback_name: "CGGetMemConstSymbolForRoutineFromClient"
+// Description: CGGetMemConstSymbolForRoutineFromClient requests that the
+//     client allocate memory to hold a constant value and then create a
+//     CGSymbol that the code generator can use to reference that memory.
+//     The memory must be at least "length" bytes and have at least "align"
+//     alignment.  The client must copy the first "length" bytes from "value"
+//     to the newly allocated memory.
 //
 // Default behavior: If the client does not provide a
-//     CGGetMemConstSymbolFromClient callback routine, the code generator will
-//     issue a fatal diagnostic if it ever needs to make this callback.  All
-//     clients are encouraged to implement CGGetMemConstSymbolFromClient.
+//     CGGetMemConstSymbolForRoutineFromClient callback routine, the code
+//     generator will issue a fatal diagnostic if it ever needs to make this
+//     callback.  All clients are encouraged to implement
+//     CGGetMemConstSymbolForRoutineFromClient.
 //
-
-extern void CGRegisterCallbackRoutine(const char *callback_name, void *fnptr);
-
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-//
-//                 Client callback routines follow
-//
-// These routines must all be defined by the client.  The code generator calls
-// these in order to get information from the client or to request that the
-// client perform some action.
-
-// CGGetRoutineNameFromClient requests that the client provide the code
-// generator with the name of the specified function.  The code generator
-// passes the same client_routine_handle that was passed to it via
-// CGCreateRoutine and CGCompileRoutine.
-//
-extern const char *CGGetRoutineNameFromClient(
-    const void *client_routine_handle
-);
-
-// CGGetMemConstSymbolFromClient requests that the client allocate memory to
-// hold a constant value and then create a CGSymbol that the code generator can
-// use to reference that memory.  The memory must be at least "length" bytes
-// and have at least "align" alignment.  The client must copy the first
-// "length" bytes from "value" to the newly allocated memory.
-//
-extern CGSymbol CGGetMemConstSymbolFromClient(uint8_t *value, size_t length,
-                                              uint32_t align);
-
-// CGSymbolNeedsLargeModelFixup asks the client whether the specified symbol
-// might have an arbitrary 64-bit address.  If so, the client must return a
-// non-zero value.  If the symbol is known to reside in the lower 2GB of
-// the address space or if the symbol is known to be located within 2GB of
-// the generated code in PIC mode, then the client may return 0.
-//
-extern int CGSymbolNeedsLargeModelFixup(CGSymbol symbol);
-
-// CGGetSymbolAddressFromClient requests that the client provide the absolute
-// address of the specified symbol.  PCG uses this information to process
-// relocations during calls to CGResolveSymbolReferences.  The return value
-// is defined as uint64_t to accommodate both 32-bit and 64-bit targets.
-//
-extern uint64_t CGGetSymbolAddressFromClient(CGSymbol symbol);
-
-// CGGetSymbolForNameFromClient requests that the client provide a CGSymbol
-// that PCG can use to reference an object level symbol of the specified name.
-// This callback function is typically used for library symbols resulting from
-// intrinsic function expansions.
-//
-extern CGSymbol CGGetSymbolForNameFromClient(const char *symbol_name);
-
-// CGGetSymbolNameFromClient requests that the client provide the name of the
-// specified symbol.
-//
-extern const char *CGGetSymbolNameFromClient(CGSymbol symbol);
-
-// CGGetProbabilityOfOverlapFromClient requests that the client provide
-// disambiguation information about the memory references identified by
-// handle1 and handle2.  (handle1 and handle2 are the handles that were passed
-// to CGCreateNewInst for 'm' operands.)
-//
-// The client must return an integer in the range [0, 100].  A return value of
-// 0 is a guarantee from the client that the memory references do not overlap.
-// A return value of 100 is a guarantee from the client that the memory
-// references do overlap.  Any other value is the client's best guess for the
-// probability that the memory references overlap.
-//
-extern uint32_t CGGetProbabilityOfOverlapFromClient(void *handle1,
-                                                    void *handle2);
-
-// CGAddRelocationToClient passes relocation information back to the client.
-// This routine is called as many times as necessary during the call to
-// CGCompileRoutine.  The client_routine_handle identifies the routine for the
-// client.  It is the same handle that was passed to PCG in the call to
-// CGCreateRoutine.  code_offset gives the location in the code at which to
-// apply the relocation action.  It is an offset from the start of the
-// function.  symbol gives the CGSymbol to which the relocation must be made.
-// relocation_type gives the type of relocation.  addend specifies a constant
-// addend used to compute the value to be stored in the relocatable field.
-//
-extern void CGAddRelocationToClient(void *client_routine_handle,
-                                    uint64_t code_offset,
-                                    CGSymbol symbol,
-                                    CGRelocationType relocation_type,
-                                    int64_t addend);
+CGDeclareCallback(CGSymbol, CGGetMemConstSymbolForRoutineFromClient,
+                            (void *client_routine_handle,
+                             uint8_t *value,
+                             size_t length,
+                             uint32_t align));
 
 #if defined(__cplusplus)
 }

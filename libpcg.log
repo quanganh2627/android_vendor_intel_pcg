@@ -1,9 +1,18 @@
 f1d15f1daaa79d2efe5604e3849bb4c0  libirc_pcg.a
-2589132121308096ff68d84c8988802a  libpcg.a
-65fd4fef9de250925b11d78783e68906  libpcg.h
-ee7c172146a4adb2d151aa81571b6938  libpcg_host.a
+0fd2f1ddfa55f0bb64a199285df7b879  libpcg.a
+d642747bf52b2d5d04bd4f74a6ad7bfd  libpcg.h
+a22a0b00cf11a0d3ae16171740861d3f  libpcg_host.a
 f0913e41f7dd9d1f9ee250f2ad804f2b  libsvml_pcg.a
 
+------------------------------------------------------------------------
+r257144 | smaslov | 2014-04-04 15:43:15 +0700 (Fri, 04 Apr 2014) | 1 line
+
+Dalvik: move to registered callbacks in SCG. Reviewer: Dave
+------------------------------------------------------------------------
+r257104 | smaslov | 2014-04-04 10:06:29 +0700 (Fri, 04 Apr 2014) | 2 lines
+
+Summary: Dalvik: remove constant values of local symbols at routine end.
+Rurl: https://ir-codecollab.intel.com/ui#review:id=6017
 ------------------------------------------------------------------------
 r251681 | smaslov | 2014-02-11 15:29:12 +0700 (Tue, 11 Feb 2014) | 1 line
 

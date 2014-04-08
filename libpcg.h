@@ -7,7 +7,7 @@
 // limitations under the EULA.
 //
 
-// static char cvs_id[] = "$Id: libpcg.h 253894 2014-03-13 13:21:57Z dlkreitz $";
+// static char cvs_id[] = "$Id: libpcg.h 257144 2014-04-04 08:43:15Z smaslov $";
 
 //
 // This file contains the declarations for the external interfaces to the
@@ -783,8 +783,8 @@ typedef enum {
 
 //
 // NOTE: THIS IS DEPRECATED!
-//       Please use CG_CALLBACK_REGISTER macro to register a callback.
-//       Refer to the CG_CALLBACK_DEFINE definitions below to get the list
+//       Please use CGRegisterCallback to register a callback.
+//       Refer to the CGDeclareCallback definitions below to get the list
 //       of supported callbacks.
 //
 extern void CGRegisterCallbackRoutine(const char *callback_name, void *fnptr);
@@ -797,7 +797,7 @@ extern void CGRegisterCallbackRoutine(const char *callback_name, void *fnptr);
 //
 // NOTE: THIS IS DEPRECATED!
 //   Please use
-//   CG_CALLBACK_REGISTER(CGGetMemConstSymbolForRoutineFromClient) instead.
+//   CGRegisterCallback(CGGetMemConstSymbolForRoutineFromClient, ...) instead.
 //
 extern CGSymbol CGGetMemConstSymbolFromClient(uint8_t *value, size_t length,
                                               uint32_t align);
@@ -806,7 +806,7 @@ extern CGSymbol CGGetMemConstSymbolFromClient(uint8_t *value, size_t length,
 // Support for CG callbacks.
 // Usage: just register your function that does the job, e.g.:
 //
-//  CG_CALLBACK_REGISTER(CGGetSymbolForNameFromClient, myfunc);
+//  CGRegisterCallback(CGGetSymbolForNameFromClient, myfunc);
 //
 // ======================================================================
 #define CGCallbackVar(name)  name##CallbackRoutine
@@ -871,7 +871,7 @@ CGDeclareCallback(int, CGSymbolNeedsLargeModelFixup,
 // Default behavior: If the client does not provide a
 //     CGGetSymbolAddressFromClient callback routine, the code generator
 //     will issue a fatal diagnostic if it ever needs to make this callback.
-//     All client that call CGResolveSymbolReferences must implement
+//     All clients that call CGResolveSymbolReferences must implement
 //     CGGetSymbolAddressFromClient.
 //
 CGDeclareCallback(uint64_t, CGGetSymbolAddressFromClient,

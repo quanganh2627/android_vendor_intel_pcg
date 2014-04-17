@@ -823,9 +823,9 @@ typedef enum {
 //
 //
 // callback_name: "CGGetSourcePosition"
-// Prototype: const char* CGGetSourcePosition(CGSrcPosHandle sp,
-//                                            int32_t *line,
-//                                            int32_t *col);
+// Prototype: const char* CGGetSourcePositionFunction(CGSrcPosHandle sp,
+//                                                    int32_t *line,
+//                                                    int32_t *col);
 // Description: PCG invokes this callback to translate non-null CGSrcPosHandle
 //     source position data into source file, line number and column number
 //     representation. File name is provided as return value while the other

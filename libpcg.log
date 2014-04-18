@@ -1,9 +1,50 @@
 f1d15f1daaa79d2efe5604e3849bb4c0  libirc_pcg.a
-0fd2f1ddfa55f0bb64a199285df7b879  libpcg.a
+087c168ff167bc5430134492aa7a6ef1  libpcg.a
 d642747bf52b2d5d04bd4f74a6ad7bfd  libpcg.h
-a22a0b00cf11a0d3ae16171740861d3f  libpcg_host.a
+7ddd66362d6f038664c6f514a5d88e03  libpcg_host.a
 f0913e41f7dd9d1f9ee250f2ad804f2b  libsvml_pcg.a
 
+Path: /nfs/ins/proj/icl/cg/users/smaslov/workspaces/dalvik/dev
+URL: https://iclsvnins.ins.intel.com/ssg/dpd/icl/dev/branches/npcg/dev
+Repository Root: https://iclsvnins.ins.intel.com/ssg/dpd/icl/dev
+Repository UUID: 66fbe9ce-305a-11e0-a3e3-7da206602f15
+Revision: 259095
+Node Kind: directory
+Schedule: normal
+Last Changed Author: smaslov
+Last Changed Rev: 259066
+Last Changed Date: 2014-04-25 11:51:49 +0700 (Fri, 25 Apr 2014)
+
+
+------------------------------------------------------------------------
+r259066 | smaslov | 2014-04-25 11:51:49 +0700 (Fri, 25 Apr 2014) | 3 lines
+
+Summary: #255764[Dalvik]: fix cascaded selects transformation when parent select is used as a true/false result in a sibling select.
+Reviewed by: Dmitriev, Valery N
+Rurl: https://ir-codecollab.intel.com/ui#review:id=6302
+------------------------------------------------------------------------
+r258944 | smaslov | 2014-04-24 09:23:56 +0700 (Thu, 24 Apr 2014) | 3 lines
+
+Summary: Allow running PIL verification in non-DEBUG build. This can be useful to verify that our clients [Dalvik] create correct PIL.
+Reviewed by: Ansari, Zia
+Rurl: https://ir-codecollab.intel.com/ui#review:id=6316
+------------------------------------------------------------------------
+r258651 | smaslov | 2014-04-21 15:37:27 +0700 (Mon, 21 Apr 2014) | 3 lines
+
+Summary: Fix x86linux self-build: use  compiler in Dalvik sanity build.
+Reviewed by: Zakharin, Vyacheslav P
+Rurl: https://ir-codecollab.intel.com/ui#review:id=6283
+------------------------------------------------------------------------
+r258419 | smaslov | 2014-04-18 11:35:07 +0700 (Fri, 18 Apr 2014) | 2 lines
+
+Summary: Dalvik: fully switch to registered callbacks in libpcg, and build shared libpcg.so with debug info. Also fixes #512461.
+Rurl: https://ir-codecollab.intel.com/ui#review:id=6228
+------------------------------------------------------------------------
+r258418 | smaslov | 2014-04-18 11:31:04 +0700 (Fri, 18 Apr 2014) | 3 lines
+
+Summary: Tune LL-SSE optimization costs with a test case from Dalvik suites.
+Reviewed by: Kaylor, Andrew
+Rurl: https://ir-codecollab.intel.com/ui#review:id=6244
 ------------------------------------------------------------------------
 r257144 | smaslov | 2014-04-04 15:43:15 +0700 (Fri, 04 Apr 2014) | 1 line
 

@@ -18,6 +18,10 @@
 
 LOCAL_PATH:= $(call my-dir)
 
+#
+# Handle static libraries.
+# These will be removed when Dalvik is switched to use shared libraries.
+#
 include $(CLEAR_VARS)
 LOCAL_PREBUILT_LIBS := libpcg.a libirc_pcg.a libsvml_pcg.a
 LOCAL_MODULE_TAGS := optional
@@ -34,10 +38,6 @@ check_libpcg_consistency: $(1)/libpcg.log
 endef
 $(eval $(call post_build,$(LOCAL_PATH)))
 
-#
-# Build for the host.
-#
-
 ifeq ($(WITH_HOST_DALVIK),true)
     include $(CLEAR_VARS)
     LOCAL_PREBUILT_LIBS := libpcg_host.a libirc_pcg.a libsvml_pcg.a
@@ -45,3 +45,26 @@ ifeq ($(WITH_HOST_DALVIK),true)
     LOCAL_IS_HOST_MODULE := true
     include $(BUILD_MULTI_PREBUILT)
 endif
+
+#
+# Handle shared libraries.
+#
+include $(CLEAR_VARS)
+LOCAL_MODULE := libpcg
+LOCAL_MODULE_SUFFIX := .so
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_STRIP_MODULE := true
+LOCAL_SRC_FILES := $(LOCAL_MODULE)$(LOCAL_MODULE_SUFFIX)
+include $(BUILD_PREBUILT)
+
+ifeq ($(WITH_HOST_DALVIK),true)
+    include $(CLEAR_VARS)
+    LOCAL_MODULE := libpcg_host
+    LOCAL_MODULE_SUFFIX := .so
+    LOCAL_MODULE_TAGS := optional
+    LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+    LOCAL_IS_HOST_MODULE := true
+    LOCAL_SRC_FILES := $(LOCAL_MODULE)$(LOCAL_MODULE_SUFFIX)
+    include $(BUILD_PREBUILT)
+ endif

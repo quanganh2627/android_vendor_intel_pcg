@@ -1,19 +1,17 @@
-f1d15f1daaa79d2efe5604e3849bb4c0  libirc_pcg.a
-087c168ff167bc5430134492aa7a6ef1  libpcg.a
-d642747bf52b2d5d04bd4f74a6ad7bfd  libpcg.h
-7ddd66362d6f038664c6f514a5d88e03  libpcg_host.a
-f0913e41f7dd9d1f9ee250f2ad804f2b  libsvml_pcg.a
+15438c4dede17b929d01bb57e9d87b25  libpcg.h
+f1e709ef2bbb9037977fc86d865216d2  libpcg_host.so
+1d2149d84465a9b64330b05f9cbbb2a1  libpcg.so
 
-Path: /nfs/ins/proj/icl/cg/users/smaslov/workspaces/dalvik/dev
+Path: /nfs/ins/proj/icl/cg/users/smaslov/workspaces/efi2/dev
 URL: https://iclsvnins.ins.intel.com/ssg/dpd/icl/dev/branches/npcg/dev
 Repository Root: https://iclsvnins.ins.intel.com/ssg/dpd/icl/dev
 Repository UUID: 66fbe9ce-305a-11e0-a3e3-7da206602f15
-Revision: 259095
+Revision: 260514
 Node Kind: directory
 Schedule: normal
-Last Changed Author: smaslov
-Last Changed Rev: 259066
-Last Changed Date: 2014-04-25 11:51:49 +0700 (Fri, 25 Apr 2014)
+Last Changed Author: dlkreitz
+Last Changed Rev: 260453
+Last Changed Date: 2014-05-14 21:49:43 +0700 (Wed, 14 May 2014)
 
 
 ------------------------------------------------------------------------

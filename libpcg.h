@@ -7,7 +7,7 @@
 // limitations under the EULA.
 //
 
-// static char cvs_id[] = "$Id: libpcg.h 257144 2014-04-04 08:43:15Z smaslov $";
+// static char cvs_id[] = "$Id: libpcg.h 260521 2014-05-15 05:45:02Z smaslov $";
 
 //
 // This file contains the declarations for the external interfaces to the
@@ -587,6 +587,48 @@ extern void CGSetTraceOutputFile(FILE *trace_file);
 extern void CGSetSetjmpContext(jmp_buf *client_context);
 extern jmp_buf *CGGetSetjmpContext(void);
 
+// CGConfigure enables the client to specify zero or more one-time
+// configuration parameters for PCG.
+// Each configuration parameter is specified by name and is followed by a
+// second string argument specifying the parameter's value.
+// The client may specify an arbitrary number of <parameter, value> pairs in
+// the argument list.  The list must be terminated by a NULL string for the
+// next parameter name.
+//
+// CGConfigure must be called before any modules are created via
+// CGCreateModule.
+//
+// The remainder of this comment lists the configuration parameters that are
+// currently supported.  It also lists the expected format for the parameter's
+// value.  Currently, there are three different formats.  Boolean parameters
+// can take a value of "on", "off", "true", or "false".  Integer parameters
+// take a 64-bit integer in string format.  And string parameters take a
+// string value.  Any expectations about the string value are noted in the
+// description of the configuration parameter.
+//
+// Parameter                                     Value Format   Default
+// --------------------------------------------------------------------
+//
+// target                                        string         "IA-32"
+//     Define the target architecture for PCG.  Supported values include
+//     "IA-32" and "Intel 64".
+//
+extern void CGConfigure(const char *config_parameter, ...);
+
+// CGConfigureModule enables the client to specify zero or more configuration
+// parameters for module, specified by 'client_module_handle'.
+// Each configuration parameter is specified by name and is followed by a
+// second string argument specifying the parameter's value.
+// The client may specify an arbitrary number of <parameter, value> pairs in
+// the argument list.  The list must be terminated by a NULL string for the
+// next parameter name.
+//
+// CGConfigureModule must be called after the module has been created via
+// CGCreateModule and before anything is created in that module.
+//
+extern void CGConfigureModule(const void *client_module_handle,
+                              const char *config_parameter, ...);
+
 // CGConfigureRoutine enables the client to specify zero or more configuration
 // parameters.  Each configuration parameter is specified by name and is
 // followed by a second string argument specifying the parameter's value.
@@ -755,8 +797,6 @@ extern jmp_buf *CGGetSetjmpContext(void);
 //     If false, it is illegal to call CGResolveSymbolReferences for the
 //     routine.
 //
-
-
 extern void CGConfigureRoutine(const char *config_parameter, ...);
 
 // CGDiagnosticLevel defines the severity of diagnostics reported by the

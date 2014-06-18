@@ -1,18 +1,59 @@
-15438c4dede17b929d01bb57e9d87b25  libpcg.h
-f1e709ef2bbb9037977fc86d865216d2  libpcg_host.so
-1d2149d84465a9b64330b05f9cbbb2a1  libpcg.so
+496a41fd2da22e86d8a86608d3b571a2  libpcg.h
+00e455e09304fda24aeab91dd6cea13e  libpcg_host.so
+aed9d45c6ecd66e6afc5355b846ab8dc  libpcg.so
 
-Path: /nfs/ins/proj/icl/cg/users/smaslov/workspaces/efi2/dev
+Path: /nfs/ins/proj/icl/cg/users/smaslov/workspaces/dalvik_release/dev
 URL: https://iclsvnins.ins.intel.com/ssg/dpd/icl/dev/branches/npcg/dev
 Repository Root: https://iclsvnins.ins.intel.com/ssg/dpd/icl/dev
 Repository UUID: 66fbe9ce-305a-11e0-a3e3-7da206602f15
-Revision: 260514
+Revision: 262842
 Node Kind: directory
 Schedule: normal
 Last Changed Author: dlkreitz
-Last Changed Rev: 260453
-Last Changed Date: 2014-05-14 21:49:43 +0700 (Wed, 14 May 2014)
+Last Changed Rev: 262840
+Last Changed Date: 2014-06-17 04:52:09 +0700 (Tue, 17 Jun 2014)
 
+------------------------------------------------------------------------
+r262706 | dlkreitz | 2014-06-12 20:34:38 +0700 (Thu, 12 Jun 2014) | 6 lines
+
+Dalvik: Fix for cq532357.  Fixed the logic in OPT_cascaded_slct for computing
+the final op3/op4 of the new slcc instrution when the initial op3/op4 is the
+integer slcc (i.e. the first slcc in the cascaded sequence).
+
+Reviewer: Andy Kaylor
+
+------------------------------------------------------------------------
+r261710 | dlkreitz | 2014-05-29 21:39:51 +0700 (Thu, 29 May 2014) | 6 lines
+
+Dalvik: Added an int3 opcode for injecting a debugger breakpoint.  This was
+specifically requested by Dalvik, but it may be useful for other clients as
+well as PCG developers.
+
+Reviewer: Sergey Maslov
+
+------------------------------------------------------------------------
+r261277 | dlkreitz | 2014-05-24 03:29:04 +0700 (Sat, 24 May 2014) | 11 lines
+
+Two small fixes for Dalvik/ART:
+
+(1) Fixed the CGSetBinarySourcePosition callback so that
+    P3OPT_emit_line_numbers gets set properly.
+
+(2) Enable the client to call CGAddIndirectBranchTarget with a call
+    instruction and have PCG appropriately classify the resulting edge
+    as an EH edge.
+
+Reviewer: Zia Ansari
+
+------------------------------------------------------------------------
+r261059 | dlkreitz | 2014-05-22 02:50:48 +0700 (Thu, 22 May 2014) | 7 lines
+
+Dalvik: Handle callee-save registers as expected by ART quick frames.  All
+callee-save spills locations must be at the top of the stack (nearest the
+return address), and they must be in the order expected by the ART runtime.
+This is triggered automatically when the client_id is c_client_art.
+
+Reviewer: Zia Ansari
 
 ------------------------------------------------------------------------
 r259066 | smaslov | 2014-04-25 11:51:49 +0700 (Fri, 25 Apr 2014) | 3 lines

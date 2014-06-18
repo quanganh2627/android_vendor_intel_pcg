@@ -7,7 +7,7 @@
 // limitations under the EULA.
 //
 
-// static char cvs_id[] = "$Id: libpcg.h 260521 2014-05-15 05:45:02Z smaslov $";
+// static char cvs_id[] = "$Id: libpcg.h 262837 2014-06-16 21:04:25Z dlkreitz $";
 
 //
 // This file contains the declarations for the external interfaces to the
@@ -211,19 +211,26 @@ typedef enum {
 // 'r': The operand is a reference to another instruction.  The value of the
 //      operand is passed using type CGInst.
 //
-// 'm': The operand is a memory reference.  The value of the operand is passed
-//      using three arguments: a CGAddr to specify the address, a uint32_t to
-//      specify the size, and a void* to specify the handle.  The handle is an
-//      opaque type that is passed back to the client in the memory
-//      disambiguation callback routine, CGGetProbabilityOfOverlapFromClient.
+// 'M': The operand is a memory reference.  The value of the operand is passed
+//      using type CGAddr.
 //
-// 'v': The same as 'm' except that the memory reference is considered
-//      volatile.
+// 'm': DEPRECATED!  The operand is a memory reference.  The value of the
+//      operand is passed using three arguments: a CGAddr to specify the
+//      address, a uint32_t to specify the size, and a void* to specify the
+//      handle.  The handle is an opaque type that is passed back to the client
+//      in the memory disambiguation callback routine,
+//      CGGetProbabilityOfOverlapFromClient.  This operand type is deprecated.
+//      Use 'M' instead.
 //
-// 'd': The operand is a pure address.  The value of the operand is passed as a
-//      CGAddr.  'd' operands differ from 'm' operands in that they do not
-//      actually dereference the address, so the size and handle are not
-//      applicable.  'd' operands are used in instructions such as lea.
+// 'v': DEPRECATED!  The same as 'm' except that the memory reference is
+//      considered volatile.  This operand type is deprecated.  Use 'M'
+//      instead.
+//
+// 'd': DEPRECATED!  The operand is a pure address.  The value of the operand
+//      is passed as a CGAddr.  'd' operands differ from 'm' operands in that
+//      they do not actually dereference the address, so the size and handle
+//      are not applicable.  'd' operands are used in instructions such as lea.
+//      This operand type is deprecated.  Use 'M' instead.
 //
 // 'n': The operand is a symbol.  The value of the symbol is currently passed
 //      using type const char *, but this needs to change.  We need a more
@@ -435,17 +442,80 @@ extern void CGFreeInsertionPoint(CGInsertionPoint insertion_point);
 // Address management routines
 //
 
+// CGCreateAddress creates an address from its component parts based on legal
+// Intel architecture addressing modes.  The returned CGAddr is transient.
+// The components of the address are specified by a descriptor string, and the
+// values for the components are specified by a variable argument list
+// following the descriptor string.  The order of the operands in the argument
+// list matches the characters in the descriptor string.  The currently
+// supported characters are
+//
+// 'b': The base address, specified as a CGInst argument in the variable
+//      argument list.  If no base address is specified, it is assumed to be 0.
+//
+// 'i': The scaled index, specified by two arguments in the variable argument
+//      list: a CGInst for the index followed by a uint32_t for the scale.  The
+//      scale must be 1, 2, 4, or 8.  If no scaled index is specified, it is
+//      assumed to be 0.
+//
+// 'n': A symbolic base, specified as a CGSymbol in the variable argument list.
+//      Conceptually, the address of the CGSymbol is added to the rest of the
+//      addressing expression.  If no symbol is specified, it is assumed to be
+//      0.
+//
+// 'd': A constant displacement, specified as an int32_t in the variable
+//      argument list.  If no displacement is specified, it is assumed to be 0.
+//
+// 's': The size of the address in bytes, specified as a uint32_t in the
+//      variable argument list.  This property is only meaningful in the
+//      context of instructions that actually reference memory.  As such, it
+//      only supports values that match memory reference sizes for instructions
+//      in Intel Architecture.
+//
+// 'h': A disambiguation handle, specified as a void* in the variable argument
+//      list.  This property is only meaningful in the context of instructions
+//      that actually reference memory.  The handle is an opaque type that is
+//      passed back to the client in the memory disambiguation callback
+//      routine, CGGetProbabilityofOverlapFromClient.
+//
+// 'v': Specifies that the memory referenced by the address is volatile.
+//      There is no corresponding argument in the variable argument list.
+//
+// 'f': Specifies that the address is relative to the FS segment register.
+//      There is no corresponding argument in the variable argument list.
+//
+// 'g': Specifies that the address is relative to the GS segment register.
+//      There is no corresponding argument in the variable argument list.
+//
+extern CGAddr CGCreateAddress(const void *client_routine_handle,
+                              const char *op_descr, ...);
+
+// DEPRECATED! Use CGCreateAddress instead.
+//
 // CGCreateAddr creates an address from its component parts based on legal
 // Intel architecture addressing modes.  The returned CGAddr is transient.
 //
 extern CGAddr CGCreateAddr(CGInst base, CGInst index, uint32_t scale,
                            CGSymbol ltbase, int32_t offset);
 
+// CGAddrAdjust modifies an existing address by setting zero or more of its
+// component parts.  Any address component that is not explicitly set is
+// unchanged, i.e. inherited from the addr argument.  The format of the
+// op_descr and variable argument list matches that of CGCreateAddress.  The
+// returned CGAddr is transient.
+//
+extern CGAddr CGAddrAdjust(const void *client_routine_handle,
+                           CGAddr addr, const char *op_descr, ...);
+
+// DEPRECATED! Use CGAddrAdjust instead.
+//
 // Create an address that differs from addr by offset bytes.  The returned
 // CGAddr is transient.  If addr is transient, it is freed by this routine.
 //
 extern CGAddr CGAddrAdjustOffset(CGAddr addr, int32_t offset);
 
+// DEPRECATED! Use CGAddrAdjust instead.
+//
 // Create an address that differs from addr by index * scale.  addr must not
 // already use a scaled index.  The returned CGAddr is transient.  If addr is
 // transient, it is freed by this routine.
@@ -470,11 +540,56 @@ extern CGAddr CGGetReturnAddressAddr(void);
 
 // Local variable allocation routine
 //
+// Allocate a local variable with the specified string of attributes.
+// This routine returns a CGAddr that gives the base address of the new
+// variable.  The returned CGAddr is transient.
+//
+// The string specifies zero or more attribute characters describing
+// the local variable. The currently supported attribute characters are
+//
+// 's' : The size of the symbol in bytes. If omitted, will default to
+//       the stack element size (4 for 32bit, 8 for 64bit). The value of the
+//       operand is passed using type uint32_t.
+//
+// 'a' : The alignment requirement for the symbol. This value must be a
+//       power of two. If omitted, will default to 4 byte alignment. The value
+//       of the operand is passed using type uint32_t.
+//
+// 'h' : The disambiguation handle for the symbol, specified as a void* in the
+//       variable argument list.  The handle is an opaque type that is passed
+//       back to the client in the memory disambiguation callback routine,
+//       CGGetProbabilityOfOverlapFromClient.
+//
+// 'w' : The "weight" of the variable represented as a double, which tells
+//       the compiler where to allocate the local. If omitted, the default
+//       weight is 0.0. Possible values are :
+//
+//    0.0 Indicates that the compiler can allocate the variable wherever it
+//        wants to, mixed in with its own internal local variables
+//        (spills/etc).
+//    < 0 A value less than 0 tells the compilers that the given local
+//        should be allocated below (closer to the bottom of the stack) where
+//        the CG allocates its own local variables (spills/etc).
+//        Multiple local variables with different weights below 0 will be
+//        ordered relative to their weight. That is, one local with weight
+//        A will be allocated further down the stack than another local
+//        with weight B, if (A < B).
+//    > 0 A value greater than 0 behaves the same as described above,
+//        except that locals will be allocated above (closer to the
+//        return pointer) the compiler's local variables (spills/etc),
+//        and relative to other variables with weight > 0.
+//
+extern CGAddr CGCreateLocal(const char *op_descr, ...);
+
+// DEPRECATED Local variable allocation routine
+//
 // Allocate a local variable of the specified size and alignment.  align must
 // be a power of two.  (The upper bound on the alignment is TBD.)
 // This routine returns a CGAddr that gives the base address of the new
 // variable.  The returned CGAddr is transient.
 //
+// NOTE: THIS IS DEPRECATED!
+//       Please use CGCreateLocal()
 extern CGAddr CGAllocLocal(uint32_t size, uint32_t align);
 
 // Symbol management routines

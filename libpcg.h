@@ -7,7 +7,7 @@
 // limitations under the EULA.
 //
 
-// static char cvs_id[] = "$Id: libpcg.h 262837 2014-06-16 21:04:25Z dlkreitz $";
+// static char cvs_id[] = "$Id: libpcg.h 263177 2014-06-19 19:11:16Z zansari $";
 
 //
 // This file contains the declarations for the external interfaces to the
@@ -631,6 +631,15 @@ extern void CGSetSymbolConstantValue(CGSymbol symbol,
                                      uint8_t *buffer,
                                      uint32_t size);
 
+// CGGetArtFrameSize will return the amount of space allocated on the
+// stack frame, in bytes. This routine must be made after the call to
+// CGCompileRoutine.
+//
+// This is an ART-specific API function and is only valid when the
+// "client_name" configuration parameter is set to "art".
+//
+extern uint64_t CGGetArtFrameSize(void);
+
 // Label management routines
 //
 // CGLabel is the mechanism that enables the client to introduce control flow
@@ -935,6 +944,22 @@ typedef enum {
     CGDiagnosticLevelFatal,
     CGDiagnosticLevelInternal
 } CGDiagnosticLevel;
+
+// CGGetArtCalleeSaveRegs returns the set of callee-save registers that were
+// spilled in the current stack frame.  This routine must be called after the
+// call to CGCompileRoutine.
+//
+// The return value is a 3-element bitset corresponding to the 3 callee-save
+// registers in the ART quick frame ABI.
+//
+//     0x1: Indicates a save of EBP
+//     0x2: Indicates a save of ESI
+//     0x4: Indicates a save of EDI
+//
+// This is an ART-specific API function and is only valid when the
+// "client_name" configuration parameter is set to "art".
+//
+extern uint32_t CGGetArtCalleeSaveRegs(void);
 
 //
 // NOTE: THIS IS DEPRECATED!
